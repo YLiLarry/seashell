@@ -54,3 +54,4 @@ frontend/project.js
 frontend/question.js
 frontend/file.js
 frontend/routes.js
+frontend/autosave.js

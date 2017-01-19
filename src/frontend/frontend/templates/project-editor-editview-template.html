@@ -81,6 +81,8 @@
           <textarea ui-codemirror ui-codemirror-opts="editFileView.editorOptions"
             ng-model="editFileView.contents" style="margin-top:70px;"></textarea>
         </div>
+        <div ng-include="'frontend/templates/autosave-template.html'"
+             ng-controller="AutosaveController"></div>
         <div id="console" class="col-md-6 col-xs-12" style="padding: 0; position: relative"
           ng-class="{'console-narrow': editFileView.settings.settings.force_narrow}">
           <div id="console-title"

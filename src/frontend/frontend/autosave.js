@@ -4,7 +4,7 @@ function AutosaveController($rootScope, $scope) {
     $scope.test = "hello";
     $scope.state = {
     	visiable: true,
-    	currentFile: "Jan 10 3:31pm",
+    	currentFile: File("Jan 10 3:31pm"),
     	files: [File("Jan 11 3:31pm"), File("Jan 10 3:31pm"), File("Jan 9 3:31pm"), File("Jan 9 3:30pm"), File("Jan 9 3:29pm"), File("Initial")]
     };
     $rootScope.$on('toggleAutosaveView', function(event, args) {
@@ -22,17 +22,23 @@ function AutosaveController($rootScope, $scope) {
 
 function showAutosave($scope) {
 	var editor = $("#editor");
-	var h = editor.css("height");
-	var w = editor.css("width");
-	$("#autosave-container").show().css({
-		height: h,
-		width: w
+	// set height as the same as the editor
+	$("#autosave").show().css({
+		height: editor.css("height"),
+		width: editor.css("width")
+	});
+	// set width of the file view
+	var fileview = $("#autosave-file");
+	var autosave = $("#autosave");
+	var listview = $("#autosave-list");
+	$("#autosave-file").css({
+		width: autosave.width() - listview.width()
 	});
 }
 
 
 function hideAutosave() {
-	$("#autosave-container").hide();
+	$("#autosave").hide();
 }
 
 function mostRecentFile() {
@@ -41,6 +47,7 @@ function mostRecentFile() {
 
 function File(name) {
 	return {
-		name: name
+		name: name,
+		contents: "text"
 	};
 }

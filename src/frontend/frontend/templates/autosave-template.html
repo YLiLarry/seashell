@@ -1,7 +1,7 @@
-<div ng-controller="AutosaveController" id="autosave-container">
+<div ng-controller="AutosaveController" id="autosave">
 	<div id="autosave-list">
 		<ul>
-			<li ng-repeat="file in state.files" ng-class="{'active': state.currentFile == file.name}">
+			<li ng-repeat="file in state.files" ng-class="{'active': state.currentFile.name == file.name}">
 				<i class="fa fa-circle"></i>
 				<span class="bar"></span>
 				<span class="filename">{{file.name}}</span>
@@ -14,10 +14,12 @@
 			Example.rkt 
 			<span class="small">(Jan 14 2017, read-only)</span>
 			<div class="editor-console-title-controls">
-				<button class="btn btn-danger btn-link pull-right">
+				<button class="btn btn-danger btn-link pull-right" ng-click="hideAutosave()">
 					close
 				</button>
 			</div>
 		</div>
+		<textarea ui-codemirror ui-codemirror-opts="editFileView.editorOptions"
+			      ng-model="state.currentFile.contents"></textarea>
 	</div>
 </div>

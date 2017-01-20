@@ -542,7 +542,7 @@ div.CodeMirror-lint-message-error, div.CodeMirror-lint-message-warning {
   color: #000;
 }
 
-#autosave-container {
+#autosave {
   height: 100%;
   width: 100%;
   display: inline-flex;
@@ -575,7 +575,7 @@ div.CodeMirror-lint-message-error, div.CodeMirror-lint-message-warning {
 
 #autosave-file {
   height: 100%;
-  width: calc(80% - 1px);
+  /*width: calc(80% - 1px);*/
   border-left: 1px solid;
   border-right: 1px solid;
   border-bottom: 1px solid;
@@ -583,7 +583,7 @@ div.CodeMirror-lint-message-error, div.CodeMirror-lint-message-warning {
 
 #autosave-list {
   height: 100%;
-  width: calc(20% - 1px);
+  /*width: calc(20% - 1px);*/
   border-top: 1px solid;
   border-bottom: 1px solid;
 }
@@ -609,7 +609,7 @@ div.CodeMirror-lint-message-error, div.CodeMirror-lint-message-warning {
 
 #autosave-list ul {
   padding-top: 30px;
-  padding-left: 20px;
+  padding-left: 15px;
 }
 
 #autosave-list li .fa-circle {
@@ -632,7 +632,9 @@ div.CodeMirror-lint-message-error, div.CodeMirror-lint-message-warning {
 
 #autosave-list li .filename {
   margin-left: 20px;
+  margin-right: 20px;
   font-size: 14px;
+  white-space: nowrap;
 }
 
 #autosave-file-title .small {

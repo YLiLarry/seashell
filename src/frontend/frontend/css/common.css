@@ -81,14 +81,6 @@ body {
   border-top: none;
 }
 
-#editor-controls > button {
-  text-decoration: none;
-}
-
-#editor-controls > button > span {
-  font-variant: small-caps;
-}
-
 #current-file-controls {
   border: 1px solid;
   border-top: none;
@@ -102,9 +94,6 @@ body {
   padding-right: 1em;
   text-decoration: none;
   font-variant: small-caps;
-}
-
-#toolbar-delete-file {
 }
 
 #toolbar-rename-file {
@@ -125,6 +114,8 @@ body {
   font-size: 18px;
   padding: 5px 0 3px 18px;
   font-weight: 200;
+  float: left;
+  width: 100%;
 }
 
 .console-controls {
@@ -550,3 +541,105 @@ label {
 div.CodeMirror-lint-message-error, div.CodeMirror-lint-message-warning {
   color: #000;
 }
+
+#autosave-container {
+  height: 100%;
+  width: 100%;
+  display: inline-flex;
+}
+
+.btn-link.btn-danger {
+  color: #e60000;
+}
+
+.btn-link.btn-danger:hover {
+  color: #c60000;
+}
+
+#autosave-file-title {
+  border-left: none;
+  border-right: none;
+}
+
+.editor-console-title-controls {
+  float: right;
+}
+
+.editor-console-title-controls button {
+  font-size: 18px;
+  font-variant-caps: small-caps;
+  padding: 0;
+  margin-right: 15px;
+  text-decoration: none !important;
+}
+
+#autosave-file {
+  height: 100%;
+  width: calc(80% - 1px);
+  border-left: 1px solid;
+  border-right: 1px solid;
+  border-bottom: 1px solid;
+}
+
+#autosave-list {
+  height: 100%;
+  width: calc(20% - 1px);
+  border-top: 1px solid;
+  border-bottom: 1px solid;
+}
+
+#autosave-list li {
+  display: block;
+  height: 30px;
+  font-size: 15px;
+  line-height: 30px;
+  position: relative;
+  cursor: pointer;
+}
+
+#autosave-list li .bar {
+  border-left: 1px solid;
+  position: absolute;
+  margin-right: 10px;
+  top: -15px;
+  left: 3px;
+  height: 100%;
+  z-index: -1;
+}
+
+#autosave-list ul {
+  padding-top: 30px;
+  padding-left: 20px;
+}
+
+#autosave-list li .fa-circle {
+  font-size: 9px;
+  position: absolute;
+  z-index: 1;
+  top: 10px;
+  left: 0px;
+}
+
+#autosave-list li.active .fa-circle {
+  border: 1px solid;
+  padding: 2px 3px;
+  border-radius: 100%;
+  left: -4px;
+  top: 7px;
+  height: 16px;
+  width: 16px;
+}
+
+#autosave-list li .filename {
+  margin-left: 20px;
+  font-size: 14px;
+}
+
+#autosave-file-title .small {
+  font-size: 14px;
+}
+
+#autosave-list li:first-child .bar {
+  visibility: hidden;
+}
+

@@ -27,6 +27,7 @@
 //cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.12.1/ui-bootstrap-tpls.min.js
 //cdnjs.cloudflare.com/ajax/libs/angular-css/1.0.7/angular-css.min.js
 //cdnjs.cloudflare.com/ajax/libs/dexie/1.4.1/dexie.js
+//use.fontawesome.com/603a4490ef.js
 
 # Overrides
 js/lib/ui-codemirror.js

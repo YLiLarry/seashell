@@ -11,24 +11,23 @@
           <div id="editor-title"
                class="col-md-12 col-xs-12 editor-console-title">
             <span class="glyphicon glyphicon-file"></span>
-            <span style="position: relative; bottom: 2px; left: 2px"> {{editFileView.file}}</span>
-            <div id="editor-controls"
-                 style="position: absolute; right: 13px; top: 0px">
+            <span> {{editFileView.file}}</span>
+            <div class="editor-console-title-controls">
               <button id="toolbar-run-tests" ng-click="editFileView.testFile()" class="btn btn-link"
                       ng-disabled="!(editFileView.runnerFile)"
-                      style="padding-left: 0; padding-right: 0; margin-right: 15px; padding-top: 2px" tooltip-placement="left" tooltip="Control+E"
+                      tooltip-placement="left" tooltip="Control+E"
                       ng-show="editFileView.console.PIDs === null">
-                <span style="font-size: 18px">test</span>
+                <span>test</span>
               </button>
               <button id="toolbar-run" ng-click="editFileView.runFile()" ng-show="editFileView.console.PIDs === null" class="btn btn-link"
                       ng-disabled="!(editFileView.runnerFile)"
-                      style="padding-left: 0; padding-right: 0; padding-top: 2px" tooltip-placement="left" tooltip="Control+R">
-                <span style="font-size: 18px">run</span>
+                      tooltip-placement="left" tooltip="Control+R">
+                run
                 <span class="glyphicon glyphicon-play-circle"></span>
               </button>
               <button id="toolbar-kill" ng-click="editFileView.killProgram()" ng-show="editFileView.console.PIDs !== null" class="btn btn-link"
-                      style="padding-left: 0; padding-right: 0; padding-top: 2px" tooltip-placement="left" tooltip="Control+K">
-                <span style="font-size: 18px">stop</span>
+                      tooltip-placement="left" tooltip="Control+K">
+                stop
               </button>
             </div>
           </div>
@@ -42,7 +41,7 @@
 
             <button id="toolbar-delete-file"
                     ng-click="editFileView.deleteFile()"
-                    class="btn btn-link">
+                    class="btn btn-danger btn-link">
             delete
             </button>
             <button id="toolbar-set-runner"
@@ -50,6 +49,11 @@
                     class="btn btn-link"
                     ng-disabled="(editFileView.folder !== 'question' && editFileView.folder !== 'common') || editFileView.isFileToRun">
                     set as <span class="glyphicon glyphicon-play-circle"></span> file 
+            </button>
+            <button id="toolbar-autosave"
+                    ng-click="editFileView.toggleAutosaveView()"
+                    class="btn btn-link">
+                    autosaves
             </button>
             <div ng-show="editFileView.editor.hasFocus()"
                  style="padding-top: 7px; float: right;
@@ -81,8 +85,7 @@
           <textarea ui-codemirror ui-codemirror-opts="editFileView.editorOptions"
             ng-model="editFileView.contents" style="margin-top:70px;"></textarea>
         </div>
-        <div ng-include="'frontend/templates/autosave-template.html'"
-             ng-controller="AutosaveController"></div>
+        <div ng-include="'frontend/templates/autosave-template.html'" class="col-md-6 col-xs-12" style="padding: 0;"></div>
         <div id="console" class="col-md-6 col-xs-12" style="padding: 0; position: relative"
           ng-class="{'console-narrow': editFileView.settings.settings.force_narrow}">
           <div id="console-title"

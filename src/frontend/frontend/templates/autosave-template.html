@@ -1,3 +1,23 @@
-<div>
-{{test}}
+<div ng-controller="AutosaveController" id="autosave-container">
+	<div id="autosave-list">
+		<ul>
+			<li ng-repeat="file in state.files" ng-class="{'active': state.currentFile == file.name}">
+				<i class="fa fa-circle"></i>
+				<span class="bar"></span>
+				<span class="filename">{{file.name}}</span>
+			</li>
+		</ul>
+	</div>
+	<div id="autosave-file">
+		<div id="autosave-file-title" class="editor-console-title">
+			<span class="glyphicon glyphicon-file"></span>
+			Example.rkt 
+			<span class="small">(Jan 14 2017, read-only)</span>
+			<div class="editor-console-title-controls">
+				<button class="btn btn-danger btn-link pull-right">
+					close
+				</button>
+			</div>
+		</div>
+	</div>
 </div>

@@ -20,10 +20,6 @@
   border-bottom-color: #eee;
 }
 
-#toolbar-delete-file {
-  color: red;
-}
-
 .editor-console-title {
   border-color: #ddd;
   background: #f4f4f4;
@@ -94,4 +90,30 @@
 
 #newProject.btn-default:hover, #newProject.btn-default:focus, #newProject.btn-default:active,
 #refresh.btn-default:hover, #refresh.btn-default:focus, #refresh.btn-default:active {
+}
+
+#autosave-list, 
+#autosave-file {
+  border-color: #ddd;
+}
+
+#autosave-list li .filename {
+  color: #b0b0b0;
+}
+
+#autosave-list li:hover .filename {
+  color: #909090;
+}
+#autosave-list li .bar,
+#autosave-list li .fa-circle {
+  color: #5892c3;
+}
+
+#autosave-list li.active .filename,
+#autosave-list li.active .fa-circle {
+  color: #5c95c5;
+}
+
+#autosave-file-title .small {
+  color: #909090;
 }

@@ -22,10 +22,10 @@ var SEASHELL_READONLY_STRING = "SEASHELL_READONLY";
 
 /* jshint supernew: true */
 angular.module('frontend-app')
-  .controller('EditFileController', ['$state', '$scope', '$timeout', '$q', 'openProject', 'openQuestion',
+  .controller('EditFileController', ['$rootScope', '$state', '$scope', '$timeout', '$q', 'openProject', 'openQuestion',
       'openFolder', 'openFile', 'error-service', 'settings-service', 'console-service', 'RenameFileModal',
       'ConfirmationMessageModal', '$window', '$document', 'hotkeys', 'scrollInfo', 'undoHistory', 'socket',
-      function($state, $scope, $timeout, $q, openProject, openQuestion, openFolder, openFile, errors,
+      function($rootScope, $state, $scope, $timeout, $q, openProject, openQuestion, openFolder, openFile, errors,
           settings, Console, renameModal, confirmModal, $window, $document, hotkeys, scrollInfo, undoHistory,
           ws) {
         var self = this;
@@ -533,6 +533,11 @@ angular.module('frontend-app')
             // emit an event to the parent scope for
             // since EditorController is in the child scope of EditorFileController
 
+        };
+
+        self.toggleAutosaveView = function() {
+            $rootScope.$emit('toggleAutosaveView');
+            console.log('event:toggleAutosaveView');
         };
 
         // Initialization code goes here.

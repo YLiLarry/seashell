@@ -4,7 +4,8 @@ import J = require("jscheck");
 import FakeIndexedDB = require("fake-indexeddb");
 import FDBKeyRange = require("fake-indexeddb/lib/FDBKeyRange");
 import Dexie from "dexie";
-import {map, filter, flatten, repeat, head, sort, sortBy, prop, forEach} from "ramda";
+import {map, filter, flatten, repeat, head, prop} from "ramda";
+import R = require("ramda");
 import md5 = require("md5");
 
 let unique = 0;
@@ -59,15 +60,18 @@ describe("Testing storage.js", () => {
     }
   });
 
+  const projGps = R.groupBy((x:File) => x.project, files);
+
   it("listProject: list files per project", async () => {
     for (const p of projs) {
       let dbFiles: File[] = await store.listProject(p);
-      let projFiles       = filter((f) => f.project == p, files); 
-      dbFiles   = sortBy(prop("name"), dbFiles);
-      projFiles = sortBy(prop("name"), projFiles);
-      expect(map(prop("name"), dbFiles)).toEqual(map(prop("name"), projFiles));
-      expect(map(prop("project"), dbFiles)).toEqual(map(prop("project"), projFiles));
-      expect(map(prop("contents"), dbFiles)).toEqual(map(prop("contents"), projFiles));
+      let projFiles       = projGps[p];
+      dbFiles   = R.sortBy(prop("name"), dbFiles);
+      projFiles = R.sortBy(prop("name"), projFiles);
+      function cmp(x: File) {
+        return [x.name, x.project, x.contents];
+      }
+      expect(map(cmp, dbFiles)).toEqual(map(cmp, projFiles));
     }
   });
 
@@ -88,6 +92,20 @@ describe("Testing storage.js", () => {
       // expect(f.name).toEqual(r.name);
       // expect(f.project).toEqual(r.project);
       // expect(f.contents).toEqual(r.contents);
+    }
+  });
+
+  it("deleteFile: delete 2 files per project", async () => {
+    for (let p in projGps) {
+      await store.deleteFile(p, projGps[p][0].name, false);
+      await store.deleteFile(p, projGps[p][1].name, false);
+    }
+  });
+
+  it("deleteProject: delete 5 projects and children", async () => {
+    var toDelete = projs
+    for (let p of projs) {
+      await store.deleteProject(p, false);
     }
   });
 

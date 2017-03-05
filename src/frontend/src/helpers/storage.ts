@@ -5,11 +5,6 @@ import {sprintf} from 'sprintf-js';
 import * as R from 'ramda';
 export {Store, File, Project};
 
-// need to import SEASHELL_CREDS_COOKIE
-var SEASHELL_CREDS_COOKIE = "";
-// need to import SEASHELL_CREDS_COOKIE
-var USERNAME = "";
-
 // subject to changes
 interface ChangeLog {
   type: string,  
@@ -20,7 +15,7 @@ interface DBOptions {
   addons?: Array<(db: Dexie) => void>,
   autoOpen?: boolean,
   indexedDB?: IDBFactory,
-  IDBKeyRange?: IDBKeyRange
+  IDBKeyRange?: new () => IDBKeyRange
 }
 
 // subject to changes
@@ -67,8 +62,8 @@ class Store {
   public async writeFile(proj: string, name: string, contents: string, history: string, checksum: string) {
     var offline_checksum = md5(contents);
     var key = [proj, name];
-    return this.db.transaction('rw', this.db.files, () => {
-      return this.db.files.update([proj, name], {
+    this.db.transaction('rw', this.db.files, () => {
+      this.db.files.update([proj, name], {
         last_modified: Date.now()
       });
       /*
@@ -110,22 +105,22 @@ class Store {
     return this.db.files.get([proj, name]);
   };
 
-  public deleteFile(name: string, file: string, online: boolean) {
+  public async deleteFile(proj: string, name: string, online: boolean) {
     var self = this;
-    var key = [name, file];
-    return self.db.transaction('rw', self.db.changelog, self.db.files, function () {
-      if (online !== undefined) {
+    var key = [proj, name];
+    return self.db.transaction('rw', self.db.files, function () {
+      if (online) {
         return self.db.files.delete(key);
       } else {
         return self.db.files.get(key).then(function (current) {
-          self.db.changelog.add({
-            file: {
-              project: name, 
-              file: file, 
-              checksum: current.checksum
-            },
-            type: "deleteFile"
-          });
+          // self.db.changelog.add({
+          //   file: {
+          //     project: proj, 
+          //     file: file, 
+          //     checksum: current.checksum
+          //   },
+          //   type: "deleteFile"
+          // });
           return self.db.files.delete(key);
         });
       }
@@ -253,15 +248,15 @@ class Store {
     });
   };
 
-  public newDirectory(name: string, path: string) {
-    var self = this;
-    return new Dexie.Promise(function (resolve, reject) {resolve(true);});
-  };
+  // public newDirectory(name: string, path: string) {
+  //   var self = this;
+  //   return new Dexie.Promise(function (resolve, reject) {resolve(true);});
+  // };
 
-  public deleteDirectory(name: string, path: string) {
-    var self = this;
-    return new Dexie.Promise(function (resolve, reject) {resolve(true);});
-  };
+  // public deleteDirectory(name: string, path: string) {
+  //   var self = this;
+  //   return new Dexie.Promise(function (resolve, reject) {resolve(true);});
+  // };
 
   public async newFile(proj: string, file: string, contents: string, encoding: string, normalize: boolean, online_checksum: string) {
     var self = this;
@@ -312,15 +307,15 @@ class Store {
     });
   };
 
-  public deleteProject(name: string, online: string) {
+  public async deleteProject(name: string, online: boolean) {
     var self = this;
-    return self.db.transaction('rw', self.db.files, self.db.changelog, self.db.projects, function () {
-      self.db.files.where('project').equals(name).each(function (file) {
-        self.deleteFile(name, file.file, online);
+    this.db.transaction('rw', this.db.files, this.db.projects, async () => {
+      this.db.files.where('project').equals(name).each(async (file: File) => {
+        await self.deleteFile(name, file.name, online);
+        await self.db.projects.delete(name);
       });
-      self.db.projects.delete(name);
     });
-  };
+  }
 
   // expects a project object in the form described in collects/seashell/backend/offline.rkt
   public async updateProject(proj: Project) {

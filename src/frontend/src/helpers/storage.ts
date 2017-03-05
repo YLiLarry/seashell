@@ -62,8 +62,8 @@ class Store {
   public async writeFile(proj: string, name: string, contents: string, history: string, checksum: string) {
     var offline_checksum = md5(contents);
     var key = [proj, name];
-    this.db.transaction('rw', this.db.files, () => {
-      this.db.files.update([proj, name], {
+    await this.db.transaction('rw', this.db.files, async () => {
+      await this.db.files.update([proj, name], {
         last_modified: Date.now()
       });
       /*
@@ -108,11 +108,11 @@ class Store {
   public async deleteFile(proj: string, name: string, online: boolean) {
     var self = this;
     var key = [proj, name];
-    return self.db.transaction('rw', self.db.files, function () {
+    await self.db.transaction('rw', self.db.files, async () => {
       if (online) {
-        return self.db.files.delete(key);
+        return await self.db.files.delete(key);
       } else {
-        return self.db.files.get(key).then(function (current) {
+        let current = await self.db.files.get(key);
           // self.db.changelog.add({
           //   file: {
           //     project: proj, 
@@ -121,8 +121,7 @@ class Store {
           //   },
           //   type: "deleteFile"
           // });
-          return self.db.files.delete(key);
-        });
+        return await self.db.files.delete(key);
       }
     });
   };
@@ -241,7 +240,7 @@ class Store {
       return files.map(function(file) {
         return {
           project: file.project, 
-          file: file.file, 
+          file: file.name, 
           checksum: file.checksum
         };
       });

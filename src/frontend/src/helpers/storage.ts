@@ -1,32 +1,26 @@
 import Dexie from 'dexie';
-import 'jquery.cookie';
-import {md5} from 'blueimp-md5';
+import 'js-cookie';
+import md5 = require('md5');
 import {sprintf} from 'sprintf-js';
+import * as R from 'ramda';
+export {Store, File, Project};
 
 // need to import SEASHELL_CREDS_COOKIE
 var SEASHELL_CREDS_COOKIE = "";
 // need to import SEASHELL_CREDS_COOKIE
 var USERNAME = "";
 
-class StorageDB extends Dexie {
-  public changelog: Dexie.Table<ChangeLog, number>;
-  public files: Dexie.Table<File, string[]>;
-  public projects: Dexie.Table<Project, string>;
-  public settings: Dexie.Table<Settings, string>;
-
-  public constructor(location: string) {
-    super(location);
-    this.version(1).stores({
-      changelog: '++id',
-      files: '[project+file], project',
-      projects: 'name',
-      settings: 'name'
-    });
-  }
-}
-
 // subject to changes
 interface ChangeLog {
+  type: string,  
+  file: string
+}
+
+interface DBOptions {
+  addons?: Array<(db: Dexie) => void>,
+  autoOpen?: boolean,
+  indexedDB?: IDBFactory,
+  IDBKeyRange?: IDBKeyRange
 }
 
 // subject to changes
@@ -34,15 +28,17 @@ interface File {
   project: string;
   name: string;
   contents: string;
-  history: string;
-  checksum: string;
-  lastModified: Date;
+  history?: string;
+  checksum?: string;
+  last_modified?: number;
 }
 
 // subject to changes
 interface Project {
-  settings: any;
   name: string;
+  settings?: any;
+  last_modified?: number;
+  last_visited?: number;
 }
 
 // subject to changes
@@ -50,16 +46,13 @@ interface Settings {
 
 }
 
-export class Storage {
+class Store {
 
   private db: StorageDB;
-  private username: string;
   private has_offline_changes: boolean;
 
-  public constructor() {
-    this.db = new StorageDB(USERNAME + "/seashell-local-files");
-
-    this.username = $.cookie(SEASHELL_CREDS_COOKIE).user;
+  public constructor(dbName: string, options: DBOptions) {
+    this.db = new StorageDB(dbName, options);
     this.has_offline_changes = false;
   }
 
@@ -71,56 +64,50 @@ export class Storage {
     * @param {string} file_history: The history of the file.
     * @param {string || any false value} checksum : The online checksum of the file, false to not update (offline write).
     */
-  public writeFile(file: string, contents: string, history: string, checksum: string) {
-    var self = this;
+  public async writeFile(proj: string, name: string, contents: string, history: string, checksum: string) {
     var offline_checksum = md5(contents);
-    var key = [name, file];
-    return self.db.transaction('rw', self.db.changelog, self.db.files, function () {
-      if (checksum !== undefined) {
-        return self.db.files.update(key, {
+    var key = [proj, name];
+    return this.db.transaction('rw', this.db.files, () => {
+      return this.db.files.update([proj, name], {
+        last_modified: Date.now()
+      });
+      /*
+      if (checksum) {
+        return this.db.files.update(key, {
           contents: contents, 
           history: history, 
           checksum: checksum,
           last_modified: Date.now()
         }).then(function (result) {
           if (! result) {
-            throw sprintf("Storage.writeFile: file %s/%s not found!", name, file);
+            throw sprintf("Storage.writeFile: file %s/%s not found!", proj, name);
           }
           return offline_checksum;
         });
       } else {
-        return self.db.files.get(key).then(function (current) {
-          self.db.changelog.add({
-            file: {
-              project: name, 
-              file: file, 
-              checksum: current.checksum
-            },
-            type: "editFile",
-            history: history,
-            contents: contents
-          });
-          self.db.files.update(key, {
-            contents: contents, 
-            history: history, 
-            checksum: offline_checksum,
+        return this.db.files.get(key).then((current: File) => {
+          // this.db.changelog.add({
+          //   file: {
+          //     project: proj, 
+          //     name: name, 
+          //     checksum: current.checksum
+          //   },
+          //   type: "editFile",
+          //   history: history,
+          //   contents: contents
+          // });
+          this.db.files.update([proj, name], {
             last_modified: Date.now()
           });
           return offline_checksum;
         });
       }
+      */
     });
   };
 
-  public readFile(name: string, file: string) {
-    var self = this;
-    var key = [name, file];
-    return self.db.files.get(key).then(function (result) {
-      return {
-        data: result.contents, 
-        history: result.history
-      };
-    });
+  public async readFile(proj: string, name: string) {
+    return this.db.files.get([proj, name]);
   };
 
   public deleteFile(name: string, file: string, online: boolean) {
@@ -242,21 +229,14 @@ export class Storage {
     });
   };
 
-  public listProject(name: string) {
-    var self = this;
+  public async listProject(name: string) {
     // this is called when we open a project, so we will update the last modified time here as well
-    return self.db.transaction('rw', self.db.projects, self.db.files, function() {
-      self.db.projects.get(name).then(function(current) {
-        current.last_modified = Date.now();
-        return self.db.projects.put(current);
+    return this.db.transaction('rw', this.db.projects, this.db.files, () => {
+      this.db.projects.get(name).then((p: Project) => {
+        p.last_modified = Date.now();
+        this.db.projects.put(p);
       });
-      return self.db.files.where('project').equals(name).toArray(
-        function (files) {
-          return files.map(
-            function (file) {
-              return [file.file, false, file.last_modified, file.checksum];
-            });
-        });
+      return this.db.files.where('project').equals(name).toArray((x: File[]) => x);
     });
   };
 
@@ -283,7 +263,7 @@ export class Storage {
     return new Dexie.Promise(function (resolve, reject) {resolve(true);});
   };
 
-  public newFile(name: string, file: string, contents: string, encoding: string, normalize: boolean, online_checksum: string) {
+  public async newFile(proj: string, file: string, contents: string, encoding: string, normalize: boolean, online_checksum: string) {
     var self = this;
     // account for base64 encoding
     var rmatch;
@@ -296,36 +276,40 @@ export class Storage {
       }
     }
     var checksum = (typeof contents === "string" && md5(contents)) || online_checksum || "";
-    var key = [name, file];
-    return self.db.transaction('rw', self.db.changelog, self.db.files, function () {
-      if (online_checksum !== undefined) {
+    var key = [proj, file];
+    return this.db.transaction('rw', this.db.files, function() {
+      let f: File = {
+        project: proj, 
+        name: file,
+        contents: contents, 
+        history: "", 
+        checksum: checksum,
+        last_modified: Date.now()
+      };
+      if (online_checksum) {
         // TODO: Set history when syncing.
-        return self.db.files.add({
-          project: name, 
-          file: file,
-          contents: contents, history: "",
-          checksum: checksum,
-          last_modified: Date.now()
-        }).then(function () {
-            return checksum;
-        });
+        return this.db.files.add(f).then(() => checksum);
       } else {
-        self.db.changelog.add({
-          file: {project: name, file: file},
-          type: "newFile",
-          contents: contents
-        });
-        self.db.files.add({project: name, file: file,
-                        contents: contents, history: "", checksum: checksum,
-                        last_modified: Date.now()});
+        // this.db.changelog.add({
+        //   file: {
+        //     project: proj, 
+        //     file: file
+        //   },
+        //   type: "newFile",
+        //   contents: contents
+        // });
+        this.db.files.add(f);
         return checksum;
       }
     });
   };
 
-  public newProject(name: string) {
-    var self = this;
-    return self.db.projects.add({name: name, settings: {}, last_modified: Date.now()});
+  public async newProject(name: string) {
+    this.db.projects.add({
+      name: name, 
+      settings: {}, 
+      last_modified: Date.now()
+    });
   };
 
   public deleteProject(name: string, online: string) {
@@ -339,11 +323,11 @@ export class Storage {
   };
 
   // expects a project object in the form described in collects/seashell/backend/offline.rkt
-  public updateProject(project: Project) {
-    var self = this;
-    project.settings = JSON.parse(project.settings);
-    return self.db.transaction('rw', self.db.projects, function() {
-      self.db.projects.put(project);
+  public async updateProject(proj: Project) {
+    // project.settings = JSON.parse(project.settings);
+    proj.last_visited = Date.now();
+    return this.db.transaction('rw', this.db.projects, () => {
+      this.db.projects.update(proj.name, proj);
     });
   };
 
@@ -357,13 +341,8 @@ export class Storage {
     });
   };
 
-  public getProjects() {
-    var self = this;
-    return self.db.projects.toCollection().toArray(function (projects) {
-      return projects.map(function (project) {
-        return [project.name, project.last_modified];
-      });
-    });
+  public async getProjects() {
+    return this.db.projects.toCollection().toArray((x:Project[]) => x);
   };
 
   public applyChanges(changes, newProjects: Project[], deletedProjects: Project[], updatedProjects: Project[], settings: Settings) {
@@ -412,5 +391,23 @@ export class Storage {
       });
       return self.has_offline_changes;
     };
+  }
+}
+
+
+class StorageDB extends Dexie {
+  public changelog: Dexie.Table<ChangeLog, number>;
+  public files: Dexie.Table<File, string[]>;
+  public projects: Dexie.Table<Project, string>;
+  public settings: Dexie.Table<Settings, string>;
+
+  public constructor(dbName: string, options?: DBOptions) {
+    super(dbName, options);
+    this.version(1).stores({
+      changelog: '++id',
+      files: '[project+name], project',
+      projects: 'name',
+      settings: 'name'
+    });
   }
 }
